@@ -1,0 +1,25 @@
+# Registry on Postgres, publishing events to NATS. Swap -store=mongodb to use MongoDB instead.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+
+  nats:
+    image: nats:2
+    ports: ["4222:4222"]
+
+  registry:
+    build: .
+    command: ["-store=postgres", "-nats=nats://nats:4222"]
+    environment:
+      POSTGRES_DSN: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      REGISTRY_USERS: admin:admin-pass:admin,viewer:viewer-pass:viewer
+      JWT_SECRET: change-me-please-123
+    ports: ["8080:8080"]
+    depends_on: [postgres, nats]
