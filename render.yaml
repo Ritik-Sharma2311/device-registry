@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: device-registry
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: REGISTRY_STORE
+        value: postgres
+      - key: POSTGRES_DSN
+        sync: false # Neon connection string, set in the Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REGISTRY_USERS
+        sync: false # name:password:role,name:password:role

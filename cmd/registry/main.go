@@ -21,8 +21,8 @@ import (
 )
 
 func main() {
-	addr := flag.String("addr", ":8080", "listen address")
-	backend := flag.String("store", "memory", "storage backend: memory, postgres or mongodb")
+	addr := flag.String("addr", listenDefault(), "listen address (defaults to :$PORT when PORT is set)")
+	backend := flag.String("store", envOr("REGISTRY_STORE", "memory"), "storage backend: memory, postgres or mongodb (default from REGISTRY_STORE)")
 	natsURL := flag.String("nats", "", "NATS URL; empty disables event publishing")
 	flag.Parse()
 
@@ -85,4 +85,18 @@ func openStore(ctx context.Context, backend string) (device.Store, error) {
 	default:
 		return nil, errors.New("unknown -store " + backend)
 	}
+}
+
+func envOr(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}
+
+func listenDefault() string {
+	if p := os.Getenv("PORT"); p != "" {
+		return ":" + p
+	}
+	return ":8080"
 }

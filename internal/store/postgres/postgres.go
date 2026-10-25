@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -25,7 +26,16 @@ type Store struct{ pool *pgxpool.Pool }
 
 // Open connects to dsn and applies any pending migrations.
 func Open(ctx context.Context, dsn string) (*Store, error) {
-	pool, err := pgxpool.New(ctx, dsn)
+	cfg, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+	// Small pool, and idle connections closed before a serverless Postgres
+	// (for example Neon) suspends its compute and drops them.
+	cfg.MaxConns = 4
+	cfg.MinConns = 0
+	cfg.MaxConnIdleTime = time.Minute
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}

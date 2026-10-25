@@ -75,3 +75,18 @@ CI runs everything against real Postgres and MongoDB service containers. The NAT
 ## Limits
 
 Users come from an environment variable with plaintext passwords, which is fine for a demo and not for production (use a user table with hashed passwords). Event publishing is at-most-once; guaranteeing delivery would need a transactional outbox or JetStream.
+
+## Deploy (free tier)
+
+`render.yaml` deploys the API to Render, with a Neon PostgreSQL database.
+
+1. Create a Neon project and copy its connection string.
+2. In Render choose New > Blueprint and select this repository.
+3. Set `POSTGRES_DSN` (the Neon string) and `REGISTRY_USERS` (for example `ann:change-me:admin,bob:change-me:viewer`). `JWT_SECRET` is generated.
+4. Point an uptime monitor (for example UptimeRobot, 5 minute interval) at `/healthz`. That endpoint never touches the database, so pings keep the web service awake while Neon can still suspend when idle.
+
+Free hosts sleep when idle, so the first request after a quiet period can take 30-50 seconds.
+
+## Postman
+
+Import `postman/device-registry.postman_collection.json`. Set `base_url` (local `http://localhost:8080`), run **Login (admin)**, then the other requests in order. Credentials default to the demo user `ann` / `pw-admin`; change `username` and `password` to match `REGISTRY_USERS`.

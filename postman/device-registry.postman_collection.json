@@ -1,0 +1,310 @@
+{
+  "info": {
+    "name": "Device Registry API",
+    "description": "Set base_url (local: http://localhost:8080, live: see README). Run 'Login (admin)' first; it saves the token. The first request on a free host may take 30-50 seconds (cold start).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/healthz",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "healthz"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Login (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/auth/token",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "token"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const j = pm.response.json();",
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('token', j.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create device",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/devices",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "devices"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"camera-{{$timestamp}}\",\n  \"kind\": \"camera\",\n  \"address\": \"192.168.1.20\",\n  \"status\": \"online\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 201', () => pm.response.to.have.status(201));",
+              "const d = pm.response.json();",
+              "pm.collectionVariables.set('device_id', d.id);",
+              "pm.collectionVariables.set('etag', '\"' + d.version + '\"');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List devices",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/devices?limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "devices?limit=10"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get device",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "devices",
+            "{{device_id}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update device (If-Match)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "If-Match",
+            "value": "{{etag}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "devices",
+            "{{device_id}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"camera-renamed-{{$timestamp}}\",\n  \"kind\": \"camera\",\n  \"address\": \"192.168.1.20\",\n  \"status\": \"offline\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Update with stale ETag (expect 412)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "If-Match",
+            "value": "\"0\""
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "devices",
+            "{{device_id}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"camera-stale\",\n  \"kind\": \"camera\",\n  \"address\": \"192.168.1.20\",\n  \"status\": \"online\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('stale version rejected', () => pm.response.to.have.status(412));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete device",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/devices/{{device_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "devices",
+            "{{device_id}}"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "username",
+      "value": "ann"
+    },
+    {
+      "key": "password",
+      "value": "pw-admin"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "device_id",
+      "value": ""
+    },
+    {
+      "key": "etag",
+      "value": ""
+    }
+  ]
+}
