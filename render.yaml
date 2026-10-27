@@ -3,6 +3,7 @@ services:
     name: device-registry
     runtime: docker
     plan: free
+    region: singapore
     healthCheckPath: /healthz
     envVars:
       - key: REGISTRY_STORE
