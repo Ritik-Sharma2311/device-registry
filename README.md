@@ -78,6 +78,8 @@ Users come from an environment variable with plaintext passwords, which is fine 
 
 ## Deploy (free tier)
 
+Live: https://device-registry.onrender.com (the first request after idle can be slow while the free instance wakes up).
+
 `render.yaml` deploys the API to Render, with a Neon PostgreSQL database.
 
 1. Create a Neon project and copy its connection string.
