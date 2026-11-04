@@ -28,6 +28,7 @@ func (a *API) Handler() http.Handler {
 	both := []string{auth.RoleAdmin, auth.RoleViewer}
 	admin := []string{auth.RoleAdmin}
 
+	mux.HandleFunc("GET /{$}", landing)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("POST /auth/token", a.login)
 	mux.Handle("GET /devices", a.auth.Require(http.HandlerFunc(a.list), both...))
