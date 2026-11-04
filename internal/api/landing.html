@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Device Registry API: a Go REST service with JWT roles, optimistic concurrency and PostgreSQL, MongoDB or in-memory storage.">
+<title>Device Registry API</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#0f172a;--mute:#5b6477;--line:#e3e7ef;--brand:#4f46e5;--brand2:#06b6d4;--code:#0f172a;--codeink:#e2e8f0;--ok:#16a34a;--bad:#dc2626}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1020;--card:#131a2e;--ink:#e8ecf6;--mute:#9aa6bf;--line:#243049;--code:#070b17;--codeink:#dbe4f5}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+.hero{background:linear-gradient(135deg,#4f46e5 0%,#0891b2 100%);color:#fff;padding:56px 0 88px}
+.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:4px 12px;border-radius:999px;font-size:13px;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:#fbbf24}
+.dot.up{background:#4ade80}
+h1{font-size:clamp(32px,6vw,48px);line-height:1.1;margin:18px 0 12px;letter-spacing:-.02em}
+.lead{font-size:18px;max-width:620px;margin:0;opacity:.94}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.tag{background:rgba(255,255,255,.14);padding:3px 11px;border-radius:6px;font-size:13px;font-weight:500}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.btn{display:inline-block;padding:10px 18px;border-radius:8px;font-weight:600;text-decoration:none;font-size:15px}
+.btn.main{background:#fff;color:#3730a3}
+.btn.ghost{border:1px solid rgba(255,255,255,.5);color:#fff}
+main{padding:36px 0 20px}
+h2{font-size:22px;margin:42px 0 6px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:-52px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 6px 18px rgba(15,23,42,.06)}
+.card h3{margin:0 0 6px;font-size:16px}
+.card p{margin:0;color:var(--mute);font-size:14.5px}
+.tbl{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.row{display:flex;gap:14px;align-items:baseline;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.row:first-child{border-top:0}
+.m{font:700 11.5px/1 ui-monospace,Menlo,Consolas,monospace;padding:5px 8px;border-radius:5px;min-width:58px;text-align:center;color:#fff}
+.GET{background:#0ea5e9}.POST{background:#16a34a}.PUT{background:#d97706}.DELETE{background:#dc2626}
+.p{font:600 14px ui-monospace,Menlo,Consolas,monospace}
+.d{color:var(--mute);font-size:14.5px;margin-left:auto}
+.badge{font-size:11px;font-weight:700;color:var(--brand);border:1px solid var(--brand);border-radius:99px;padding:1px 8px;margin-left:6px}
+pre{background:var(--code);color:var(--codeink);border-radius:12px;padding:18px;overflow-x:auto;font:13.5px/1.6 ui-monospace,Menlo,Consolas,monospace;margin:0}
+.c{color:#7c8aa5}
+.note{color:var(--mute);font-size:14.5px;margin-top:12px}
+footer{border-top:1px solid var(--line);margin-top:48px;padding:26px 0 40px;color:var(--mute);font-size:14px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
+footer a{color:var(--brand);font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+<span class="pill"><span class="dot" id="dot"></span><span id="st">Checking status</span></span>
+<h1>Device Registry API</h1>
+<p class="lead">A REST service to register and track devices such as cameras and sensors, with secure login, role based access and safe concurrent updates.</p>
+<div class="tags"><span class="tag">Go</span><span class="tag">PostgreSQL</span><span class="tag">MongoDB</span><span class="tag">JWT</span><span class="tag">Docker</span></div>
+<div class="btns"><a class="btn main" href="https://github.com/Ritik-Sharma2311/device-registry">View source</a><a class="btn ghost" href="#api">API reference</a></div>
+</div></header>
+<main class="wrap">
+<div class="grid">
+<div class="card"><h3>JWT authentication</h3><p>Token login with admin and viewer roles. Viewers can read, admins can change data.</p></div>
+<div class="card"><h3>Safe updates</h3><p>Every device has a version. A stale ETag in If-Match gets 412, so no one overwrites another change.</p></div>
+<div class="card"><h3>Swappable storage</h3><p>The same code runs on memory, PostgreSQL or MongoDB, checked by one shared test suite.</p></div>
+</div>
+<h2 id="api">API reference</h2>
+<p class="sub">Everything except login and health needs an Authorization: Bearer token.</p>
+<div class="tbl">
+<div class="row"><span class="m POST">POST</span><span class="p">/auth/token</span><span class="d">Log in and receive a token</span></div>
+<div class="row"><span class="m GET">GET</span><span class="p">/devices</span><span class="d">List devices</span></div>
+<div class="row"><span class="m GET">GET</span><span class="p">/devices/{id}</span><span class="d">Get one device</span></div>
+<div class="row"><span class="m POST">POST</span><span class="p">/devices</span><span class="d">Create a device<span class="badge">admin</span></span></div>
+<div class="row"><span class="m PUT">PUT</span><span class="p">/devices/{id}</span><span class="d">Update with If-Match<span class="badge">admin</span></span></div>
+<div class="row"><span class="m DELETE">DELETE</span><span class="p">/devices/{id}</span><span class="d">Delete a device<span class="badge">admin</span></span></div>
+<div class="row"><span class="m GET">GET</span><span class="p">/healthz</span><span class="d">Health check</span></div>
+</div>
+<h2>Quick start</h2>
+<p class="sub">Replace the placeholders with your own login.</p>
+<pre><span class="c"># 1. log in</span>
+curl -X POST https://device-registry.onrender.com/auth/token \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"USER","password":"PASSWORD"}'
+
+<span class="c"># 2. create a device</span>
+curl -X POST https://device-registry.onrender.com/devices \
+  -H 'Authorization: Bearer TOKEN' -H 'Content-Type: application/json' \
+  -d '{"name":"lobby-cam","kind":"camera","address":"192.168.1.20","status":"online"}'</pre>
+<p class="note">Login details are private. A Postman collection and full documentation are in the repository. This runs on a free host, so the first request after a long quiet period can take a little while.</p>
+</main>
+<div class="wrap"><footer><span>Built by Ritik Sharma</span><a href="https://github.com/Ritik-Sharma2311/device-registry">github.com/Ritik-Sharma2311/device-registry</a></footer></div>
+<script>
+fetch('/healthz').then(function(r){if(!r.ok)throw 0;document.getElementById('dot').className='dot up';document.getElementById('st').textContent='Live and healthy'}).catch(function(){document.getElementById('st').textContent='Service status unknown'});
+</script>
+</body>
+</html>
